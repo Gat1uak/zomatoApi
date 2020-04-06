@@ -47,7 +47,7 @@ class ZOMATO {
 class UI {
    constructor() {
       this.loader = document.querySelector('.loader');
-      this.restaurantsList = document.getElementById('restaurant-list');
+      this.restaurantList = document.getElementById('restaurant-list');
    }
    addSelectOptions(categories) {
       const search = document.getElementById('searchCategory');
@@ -69,9 +69,65 @@ class UI {
       this.loader.classList.add('showItem');
    }
    hideLoader() {
-      setTimeout(() => {
-         this.loader.classList.remove('showItem')
-      }, 3000)
+      this.loader.classList.remove('showItem')
+   }
+   getRestaurants(restaurants) {
+      this.hideLoader()
+      if (restaurants.length === 0) {
+         ui.showFeedback('no such categories exist');
+      } else {
+         // console.log(restaurants[0].restaurant);
+         this.restaurantList.innerHTML = '';
+         restaurants.forEach((restaurant) => {
+            const { thumb: img, name, location: { address }, user_rating: { aggregate_rating }, cuisines, average_cost_for_two: cost, menu_url, url } = restaurant.restaurant;
+            if (img !== '') {
+               this.showRestaurant(img, name, address, aggregate_rating, cuisines, cost, menu_url, url)
+            }
+         })
+      }
+   }
+   showRestaurant(img, name, address, aggregate_rating, cuisines, cost, menu_url, url) {
+      const div = document.createElement('div');
+      div.classList.add('col-11', 'mx-auto', 'my-3', 'col-md-4');
+      div.innerHTML = `
+      <div class="card">
+         <div class="row p-3">
+         <div class="col-5">
+            <img src="${img}" class="img-fluid img-thumbnail" alt="">
+         </div>
+         <div class="col-5 text-capitalize">
+            <h6 class="text-uppercase pt-2 redText">${name}</h6>
+            <p>${address}</p>
+         </div>
+         <div class="col-1">
+            <div class="badge badge-success">
+            ${aggregate_rating}
+            </div>
+         </div>
+         </div>
+         <hr>
+         <div class="row py-3 ml-1">
+         <div class="col-5 text-uppercase ">
+            <p>cuisines: </p>
+            <p>cost for two:</p>
+         </div>
+         <div class="col-7 text-uppercase">
+            <p>${cuisines}</p>
+            <p>$${cost}</p>
+         </div>
+         </div>
+         <hr>
+         <div class="row text-center no-gutters pb-3">
+         <div class="col-6">
+            <a href="${menu_url}" target="_blank" class="btn redBtn  text-uppercase"><i class="fas fa-book"></i> menu</a>
+         </div>
+         <div class="col-6">
+            <a href="${url}" target="_blank" class="btn redBtn  text-uppercase"><i class="fas fa-book"></i> website</a>
+         </div>
+         </div>
+      </div>
+      `;
+      this.restaurantList.appendChild(div)
    }
 }
 
@@ -106,7 +162,6 @@ class UI {
                ui.showFeedback('Please enter a valid city');
             } else {
                ui.showLoader();
-               ui.hideLoader();
                zomato.searchAPI(city, categoryID).then(data => {
                   ui.getRestaurants(data.restaurants);
                });
